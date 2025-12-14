@@ -1,0 +1,150 @@
+ALB + Auto Scaling Group Demo (AWS)
+
+This project demonstrates a high-availability, auto-scaling web architecture on AWS using an Application Load Balancer (ALB), EC2 Auto Scaling Group (ASG), CloudWatch, and AWS Systems Manager (SSM).
+
+The goal was to build something realistic, observable, and scalable — and to fully understand why each component exists and how they work together.
+
+Architecture Overview
+
+Services used:
+
+Amazon EC2
+
+Application Load Balancer (ALB)
+
+Auto Scaling Group (ASG)
+
+Launch Templates
+
+CloudWatch Metrics
+
+AWS Systems Manager (SSM)
+
+IAM Roles
+
+What this setup does:
+
+Routes traffic through an ALB
+
+Automatically scales EC2 instances based on CPU usage
+
+Uses SSM instead of SSH for secure instance access
+
+Verifies scaling behavior using real CPU stress tests
+
+Load Balancer & Target Group
+
+The Application Load Balancer distributes traffic evenly across EC2 instances registered in a target group.
+
+ALB details:
+
+Target group health check (all instances healthy):
+
+Auto Scaling Group Configuration
+
+The Auto Scaling Group is configured with:
+
+Minimum capacity: 2
+
+Desired capacity: 2
+
+Maximum capacity: 4
+
+ASG configuration details:
+
+Instances currently managed by the ASG:
+
+Launch Template & User Data
+
+All EC2 instances are launched from a Launch Template that includes user data to automatically install and start a web server on boot.
+
+Launch template user data:
+
+This ensures every new instance is production-ready immediately after launch.
+
+Load Balancer Traffic Distribution
+
+Refreshing the ALB DNS in the browser shows traffic being served by different EC2 instances, proving the ALB is working correctly.
+
+Browser refresh showing different instance IDs:
+
+
+
+
+
+
+Scaling Policy (CPU-Based)
+
+The Auto Scaling Group uses a Target Tracking Scaling Policy:
+
+Metric: Average CPU Utilization
+
+Target value: 50%
+
+Scale-in and scale-out both enabled
+
+Scaling policy configuration:
+
+CloudWatch Metrics & CPU Spike
+
+CPU usage is monitored using CloudWatch metrics. A deliberate CPU stress test was used to trigger scaling.
+
+CloudWatch CPU spike during stress test:
+
+Systems Manager (SSM) Access
+
+Instances are managed securely using AWS Systems Manager Session Manager, avoiding SSH and key management issues.
+
+Instance registered with SSM:
+
+Stress Test via SSM
+
+A CPU stress test was run directly inside the instance using SSM:
+
+sudo dnf install -y stress-ng
+stress-ng --cpu 2 --timeout 600
+
+
+SSM stress test execution:
+
+Auto Scaling Event
+
+As CPU crossed the 50% threshold, the ASG automatically launched an additional EC2 instance.
+
+Scaling activity event:
+
+Final System State
+
+After scaling:
+
+3 EC2 instances running
+
+All instances healthy behind the ALB
+
+CPU returned to stable levels after scale-out
+
+Final system state:
+
+Key Takeaways
+
+Auto Scaling responds to real load, not just configuration
+
+ALB ensures zero-downtime traffic distribution
+
+SSM is a cleaner, more secure alternative to SSH
+
+CloudWatch metrics are essential for visibility and debugging
+
+Possible Improvements
+
+Add HTTPS with ACM
+
+Store logs in CloudWatch Logs
+
+Add alarms and notifications (SNS)
+
+Introduce infrastructure as code (Terraform / CloudFormation)
+
+Author
+
+Built as a hands-on AWS learning project to deeply understand load balancing, auto scaling, monitoring, and secure instance management.
